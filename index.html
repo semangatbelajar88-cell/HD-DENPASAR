@@ -2,33 +2,85 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <title>Tabel Data Google Sheet</title>
+  <title>Dashboard Data Google Sheets</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background:#f9f9f9; }
-    h1 { margin-bottom: 16px; }
-    table { border-collapse: collapse; width: 100%; background:white; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    .P7 { background: #00FF00; color: #000; } /* hijau stabilo */
-    .P { background: #fff; color: #000; }
-    .M { background: pink; color: #000; }
-    .L { background: #ADD8E6; color: #000; } /* biru muda */
-    .C { background: red; color: #fff; }
-    .S { background: orange; color: #000; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f7fa;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filters input {
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    tr:hover td {
+      background: #fafafa;
+    }
+    /* Warna kategori */
+    .P7 { background: #00FF00; color:#000; }
+    .P  { background: #fff; color:#000; }
+    .M  { background: pink; color:#000; }
+    .L  { background: #ADD8E6; color:#000; }
+    .C  { background: red; color:#fff; }
+    .S  { background: orange; color:#000; }
   </style>
 </head>
 <body>
-  <h1>Data dari Google Sheets</h1>
+  <h1>Dashboard Data Google Sheets</h1>
+
+  <!-- Filter -->
+  <div class="filters">
+    <input type="text" id="filterName" placeholder="Cari nama...">
+    <input type="date" id="filterDate">
+  </div>
+
+  <!-- Tabel -->
   <table id="dataTable"></table>
 
 <script>
-// URL CSV publik dari Google Sheets Anda
+// URL CSV publik dari Google Sheets
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUrxQVQt6_gReWTf-9AzM3NjslMEHWW1kWw-1Bicgs31-FDy4hGa7ggrKpN8bP5tWTL-aF-wordQpu/pub?gid=1452787851&single=true&output=csv";
+
+let allRows = [];
 
 async function loadSheet(){
   const res = await fetch(sheetUrl);
   const text = await res.text();
-  const rows = text.split("\n").map(r => r.split(","));
+  allRows = text.split("\\n").map(r => r.split(","));
+  renderTable(allRows);
+}
 
+function renderTable(rows){
   const table = document.getElementById("dataTable");
   table.innerHTML = "";
 
@@ -46,6 +98,37 @@ async function loadSheet(){
     table.appendChild(tr);
   });
 }
+
+function applyFilters(){
+  if(!allRows.length) return;
+
+  const nameFilter = document.getElementById("filterName").value.toLowerCase();
+  const dateFilter = document.getElementById("filterDate").value;
+
+  // header selalu ikut
+  const filtered = [allRows[0]];
+
+  allRows.slice(1).forEach(row => {
+    const rowText = row.join(" ").toLowerCase();
+    const rowDate = row.find(c => c.match(/\\d{4}-\\d{2}-\\d{2}/)); // cari format tanggal yyyy-mm-dd
+
+    let match = true;
+
+    if(nameFilter && !rowText.includes(nameFilter)){
+      match = false;
+    }
+    if(dateFilter && rowDate && rowDate.trim() !== dateFilter){
+      match = false;
+    }
+
+    if(match) filtered.push(row);
+  });
+
+  renderTable(filtered);
+}
+
+document.getElementById("filterName").addEventListener("input", applyFilters);
+document.getElementById("filterDate").addEventListener("change", applyFilters);
 
 loadSheet();
 </script>
