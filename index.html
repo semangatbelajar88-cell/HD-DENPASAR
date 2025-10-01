@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Tabel Data Google Sheet</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background:#f9f9f9; }
+    h1 { margin-bottom: 16px; }
+    table { border-collapse: collapse; width: 100%; background:white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    .P7 { background: #00FF00; color: #000; } /* hijau stabilo */
+    .P { background: #fff; color: #000; }
+    .M { background: pink; color: #000; }
+    .L { background: #ADD8E6; color: #000; } /* biru muda */
+    .C { background: red; color: #fff; }
+    .S { background: orange; color: #000; }
+  </style>
+</head>
+<body>
+  <h1>Data dari Google Sheets</h1>
+  <table id="dataTable"></table>
+
+<script>
+// URL CSV publik dari Google Sheets Anda
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUrxQVQt6_gReWTf-9AzM3NjslMEHWW1kWw-1Bicgs31-FDy4hGa7ggrKpN8bP5tWTL-aF-wordQpu/pub?gid=1452787851&single=true&output=csv";
+
+async function loadSheet(){
+  const res = await fetch(sheetUrl);
+  const text = await res.text();
+  const rows = text.split("\n").map(r => r.split(","));
+
+  const table = document.getElementById("dataTable");
+  table.innerHTML = "";
+
+  rows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    row.forEach(cell => {
+      const value = cell.trim();
+      const el = i === 0 ? document.createElement("th") : document.createElement("td");
+      el.textContent = value;
+      if(["P7","P","M","L","C","S"].includes(value)){
+        el.className = value;
+      }
+      tr.appendChild(el);
+    });
+    table.appendChild(tr);
+  });
+}
+
+loadSheet();
+</script>
+</body>
+</html>
